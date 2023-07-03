@@ -405,6 +405,35 @@ void  OSIntExit (void)
 
 /*
 ************************************************************************************************************************
+*                                                     ISR CHECK
+*
+* Description: This function is called to check if the current context is in an ISR or not.
+*
+* Arguments  : none
+*
+* Returns    : If current context is in iSR (OS_TRUE) or not (OS_FALSE).
+*
+* Note(s)    : none
+************************************************************************************************************************
+*/
+
+CPU_BOOLEAN  OSIntIsInIsr (void)
+{
+    CPU_BOOLEAN in_isr;
+
+    if (OSIntNestingCtr > 0u) {
+       in_isr = OS_TRUE;
+    }
+    else {
+       in_isr = OS_FALSE;
+    }
+
+    return (in_isr);
+}
+
+
+/*
+************************************************************************************************************************
 *                                    INDICATE THAT IT'S NO LONGER SAFE TO CREATE OBJECTS
 *
 * Description: This function is called by the application code to indicate that all initialization has been completed
