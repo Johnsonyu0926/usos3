@@ -1897,6 +1897,7 @@ void          OSInit                    (OS_ERR                *p_err);
 
 void          OSIntEnter                (void);
 void          OSIntExit                 (void);
+CPU_BOOLEAN   OSIntIsInIsr              (void);
 
 #if (OS_CFG_SCHED_ROUND_ROBIN_EN > 0u)
 void          OSSchedRoundRobinCfg      (CPU_BOOLEAN            en,
