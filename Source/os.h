@@ -1672,6 +1672,7 @@ void          OSTaskQPost               (OS_TCB                *p_tcb,
                                          OS_OPT                 opt,
                                          OS_ERR                *p_err);
 
+CPU_BOOLEAN   OSTaskQIsFull             (OS_TCB                *p_tcb);
 #endif
 
 #if (OS_CFG_TASK_REG_TBL_SIZE > 0u)
@@ -2009,6 +2010,8 @@ void          OS_MsgQPut                (OS_MSG_Q              *p_msg_q,
                                          OS_OPT                 opt,
                                          CPU_TS                 ts,
                                          OS_ERR                *p_err);
+
+CPU_BOOLEAN   OS_MsgQIsFull             (OS_MSG_Q              *p_msg_q);
 
 /* ---------------------------------------------- PEND/POST MANAGEMENT ---------------------------------------------- */
 

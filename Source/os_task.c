@@ -1172,6 +1172,34 @@ void  OSTaskQPost (OS_TCB       *p_tcb,
 
 /*
 ************************************************************************************************************************
+*                                               TASK MESSAGE Q CHECK
+*
+* Description: This function checks if the task message queue is full or not.
+*
+* Arguments  : p_tcb      is a pointer to the TCB of the task.  If you specify a NULL pointer then the check is 
+*                         performed for the queue of the calling task.  
+*
+* Returns    : == OS_FALSE   if task message queue is not full.
+*              == OS_TRUE    if task message queue is full.
+*
+* Note(s)    : none
+************************************************************************************************************************
+*/
+
+#if (OS_CFG_TASK_Q_EN > 0u)
+CPU_BOOLEAN  OSTaskQIsFull (OS_TCB  *p_tcb)
+{
+    if (p_tcb == (OS_TCB *)0) {                                 /* Check for 'self'?                                    */
+        p_tcb = OSTCBCurPtr;
+    }
+
+    return (OS_MsgQIsFull(&p_tcb->MsgQ));
+}
+#endif
+
+
+/*
+************************************************************************************************************************
 *                                       GET THE CURRENT VALUE OF A TASK REGISTER
 *
 * Description: This function is called to obtain the current value of a task register.  Task registers are application
