@@ -114,7 +114,7 @@ void  OSIdleTaskHook (void)
 void  OSInitHook (void)
 {
 #if (OS_CPU_ARM_FP_EN > 0u)
-    CPU_INT32U   reg_val;
+    volatile CPU_INT32U   reg_val;
 #endif
                                                                 /* 8-byte align the ISR stack.                          */
     OS_CPU_ExceptStkBase = (CPU_STK *)(OSCfg_ISRStkBasePtr + OSCfg_ISRStkSize);
