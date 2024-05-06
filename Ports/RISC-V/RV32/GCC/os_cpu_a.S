@@ -23,7 +23,6 @@
 # For       : RISC-V RV32
 # Toolchain : GNU C Compiler
 #********************************************************************************************************
-# Note(s)   : Hardware FP is not supported.
 #********************************************************************************************************
 
 #********************************************************************************************************
@@ -71,7 +70,7 @@
 #              a) Call OSTaskSwHook() then,
 #              b) Set OSRunning to TRUE,
 #              c) Set OSTCBHighRdyPtr->StkPtr = SP
-#              d) Restore x1-x31; There is no need to restore x0 since it is always zero.
+#              d) Restore x1-x31 and f0-f31; There is no need to restore x0 since it is always zero.
 #              e) Enable interrupts (tasks will run with interrupts enabled).
 #              f) Switch to highest priority task.
 #********************************************************************************************************
@@ -108,7 +107,7 @@ OSStartHighRdy:
     # value stored in t0 is stored into mepc
     csrw   mepc, t0
 
-# Restore x1 to x31 registers
+# Restore x1 to x31 registers (base registers)
     # load word from memory addres [(0 * 4) + sp] into ra register
     lw     ra,   0 * 4(sp)
     lw     t0,   4 * 4(sp)
@@ -139,9 +138,43 @@ OSStartHighRdy:
     lw     t5,  29 * 4(sp)
     lw     t6,  30 * 4(sp)
 
+    #Restore f0 to f31 registers (FP registers)
+    flw    f0,  32 * 4(sp)
+    flw    f1,  33 * 4(sp)
+    flw    f2,  34 * 4(sp)
+    flw    f3,  35 * 4(sp)
+    flw    f4,  36 * 4(sp)
+    flw    f5,  37 * 4(sp)
+    flw    f6,  38 * 4(sp)
+    flw    f7,  39 * 4(sp)
+    flw    f8,  40 * 4(sp)
+    flw    f9,  41 * 4(sp)
+    flw    f10, 42 * 4(sp)
+    flw    f11, 43 * 4(sp)
+    flw    f12, 44 * 4(sp)
+    flw    f13, 45 * 4(sp)
+    flw    f14, 46 * 4(sp)
+    flw    f15, 47 * 4(sp)
+    flw    f16, 48 * 4(sp)
+    flw    f17, 49 * 4(sp)
+    flw    f18, 50 * 4(sp)
+    flw    f19, 51 * 4(sp)
+    flw    f20, 52 * 4(sp)
+    flw    f21, 53 * 4(sp)
+    flw    f22, 54 * 4(sp)
+    flw    f23, 55 * 4(sp)
+    flw    f24, 56 * 4(sp)
+    flw    f25, 57 * 4(sp)
+    flw    f26, 58 * 4(sp)
+    flw    f27, 59 * 4(sp)
+    flw    f28, 60 * 4(sp)
+    flw    f29, 61 * 4(sp)
+    flw    f30, 62 * 4(sp)
+    flw    f31, 63 * 4(sp)
+
 # Compensate for the stack pointer
-    # sp = sp + 32 * 4
-    addi   sp, sp, 32 * 4
+    # sp = sp + 64 * 4
+    addi   sp, sp, 64 * 4
 
 # Use register t6 to jump to HIGHEST priority
     csrr   t6, mepc
@@ -176,7 +209,7 @@ OSCtxSw:
 .align 8
 ucos_intr_exception_handler:
     # save regs to current sp
-    addi sp, sp, -4*32
+    addi sp, sp, -4*64
     # store contents of register ra into memory [(0 * 4) + sp]
     sw     ra,   0 * 4(sp)
     sw     t0,   4 * 4(sp)
@@ -206,6 +239,40 @@ ucos_intr_exception_handler:
     sw     t4,  28 * 4(sp)
     sw     t5,  29 * 4(sp)
     sw     t6,  30 * 4(sp)
+
+    #  save f0 to f31 registers (FPU registers)
+    fsw    f0,  32 * 4(sp)
+    fsw    f1,  33 * 4(sp)
+    fsw    f2,  34 * 4(sp)
+    fsw    f3,  35 * 4(sp)
+    fsw    f4,  36 * 4(sp)
+    fsw    f5,  37 * 4(sp)
+    fsw    f6,  38 * 4(sp)
+    fsw    f7,  39 * 4(sp)
+    fsw    f8,  40 * 4(sp)
+    fsw    f9,  41 * 4(sp)
+    fsw    f10, 42 * 4(sp)
+    fsw    f11, 43 * 4(sp)
+    fsw    f12, 44 * 4(sp)
+    fsw    f13, 45 * 4(sp)
+    fsw    f14, 46 * 4(sp)
+    fsw    f15, 47 * 4(sp)
+    fsw    f16, 48 * 4(sp)
+    fsw    f17, 49 * 4(sp)
+    fsw    f18, 50 * 4(sp)
+    fsw    f19, 51 * 4(sp)
+    fsw    f20, 52 * 4(sp)
+    fsw    f21, 53 * 4(sp)
+    fsw    f22, 54 * 4(sp)
+    fsw    f23, 55 * 4(sp)
+    fsw    f24, 56 * 4(sp)
+    fsw    f25, 57 * 4(sp)
+    fsw    f26, 58 * 4(sp)
+    fsw    f27, 59 * 4(sp)
+    fsw    f28, 60 * 4(sp)
+    fsw    f29, 61 * 4(sp)
+    fsw    f30, 62 * 4(sp)
+    fsw    f31, 63 * 4(sp)
 
     # If it is a ecall, do not add 4 in mepc
     # otherwise add 4 in mepc
@@ -262,7 +329,8 @@ run_ecall_handler:
 #              c) Get current ready thread TCB, OSTCBCurPtr = OSTCBHighRdyPtr;
 #              d) Get new process SP from TCB, SP = OSTCBHighRdyPtr->StkPtr;
 #              e) Retrieve the address at which exception happened.
-#              f) Restore x1-x31 from new process stack; x0 is always zero.
+#              f) Restore x1-x31(base registers) and f0-f31(FP registers)
+#                 from new process stack; x0 is always zero.
 #              g) set MPIE = 1 to enable interrupt before returning.
 #              h) Perform exception return which will restore remaining context.
 #
@@ -321,8 +389,42 @@ Software_IRQHandler:
     lw     t5,  29 * 4(sp)
     lw     t6,  30 * 4(sp)
 
+    #  Restore f0 to f31 registers (FPU registers)
+    flw    f0,  32 * 4(sp)
+    flw    f1,  33 * 4(sp)
+    flw    f2,  34 * 4(sp)
+    flw    f3,  35 * 4(sp)
+    flw    f4,  36 * 4(sp)
+    flw    f5,  37 * 4(sp)
+    flw    f6,  38 * 4(sp)
+    flw    f7,  39 * 4(sp)
+    flw    f8,  40 * 4(sp)
+    flw    f9,  41 * 4(sp)
+    flw    f10, 42 * 4(sp)
+    flw    f11, 43 * 4(sp)
+    flw    f12, 44 * 4(sp)
+    flw    f13, 45 * 4(sp)
+    flw    f14, 46 * 4(sp)
+    flw    f15, 47 * 4(sp)
+    flw    f16, 48 * 4(sp)
+    flw    f17, 49 * 4(sp)
+    flw    f18, 50 * 4(sp)
+    flw    f19, 51 * 4(sp)
+    flw    f20, 52 * 4(sp)
+    flw    f21, 53 * 4(sp)
+    flw    f22, 54 * 4(sp)
+    flw    f23, 55 * 4(sp)
+    flw    f24, 56 * 4(sp)
+    flw    f25, 57 * 4(sp)
+    flw    f26, 58 * 4(sp)
+    flw    f27, 59 * 4(sp)
+    flw    f28, 60 * 4(sp)
+    flw    f29, 61 * 4(sp)
+    flw    f30, 62 * 4(sp)
+    flw    f31, 63 * 4(sp)
+
 # Compensate for the stack pointer
-    addi   sp, sp, 4 * 32
+    addi   sp, sp, 4 * 64
 
 # Exception return will restore remaining context
     # set MPIE = 1
