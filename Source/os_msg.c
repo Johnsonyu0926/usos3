@@ -346,4 +346,30 @@ void  OS_MsgQPut (OS_MSG_Q     *p_msg_q,
 #endif
    *p_err          = OS_ERR_NONE;
 }
+
+
+/*
+************************************************************************************************************************
+*                                                   CHECK MESSAGE QUEUE
+*
+* Description: This function checks if the message queue is full or not
+*
+* Arguments  : p_msg_q     is a pointer to the message queue
+*              -------
+*
+* Returns    : == OS_FALSE   if message queue is not full.
+*              == OS_TRUE    if message queue is full.
+*
+* Note(s)    : 1) This function is INTERNAL to uC/OS-III and your application MUST NOT call it.
+************************************************************************************************************************
+*/
+
+CPU_BOOLEAN  OS_MsgQIsFull (OS_MSG_Q   *p_msg_q)
+{
+    if (p_msg_q->NbrEntries >= p_msg_q->NbrEntriesSize) {
+        return(OS_TRUE);
+    } else {
+        return(OS_FALSE);
+    }
+}
 #endif

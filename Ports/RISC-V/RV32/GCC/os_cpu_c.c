@@ -306,8 +306,12 @@ CPU_STK  *OSTaskStkInit (OS_TASK_PTR    p_task,
     p_stk = &p_stk_base[stk_size];             /* Load stack pointer and align it to 16-bytes          */
     p_stk = (CPU_STK *)((CPU_STK)(p_stk) & 0xFFFFFFF0u);
 
+    /* make space for floating point registers */
+    for(int i = 0; i < 32; i++) {
+        *(--p_stk) = (CPU_STK)0;
+    }
+    /* make space for base registers */
     *(--p_stk) = (CPU_STK) p_task;             /* Entry Point                                          */
-
     *(--p_stk) = (CPU_STK) 0x31313131uL;       /* t6                                                   */
     *(--p_stk) = (CPU_STK) 0x30303030uL;       /* t5                                                   */
     *(--p_stk) = (CPU_STK) 0x29292929uL;       /* t4                                                   */
@@ -344,7 +348,6 @@ CPU_STK  *OSTaskStkInit (OS_TASK_PTR    p_task,
     *(--p_stk) = (CPU_STK) 0x03030303uL;       /* gp: Global pointer                                   */
     *(--p_stk) = (CPU_STK) 0x02020202uL;       /* sp: Stack  pointer                                   */
     *(--p_stk) = (CPU_STK) OS_TaskReturn;      /* ra: return address                                   */
-
     return (p_stk);
 }
 
@@ -442,36 +445,6 @@ void  OSTimeTickHook (void)
     CPU_TS_Update();
 #endif
 }
-
-
-/*
-*********************************************************************************************************
-*                                          SYS TICK HANDLER
-*
-* Description: Handle the system tick (SysTick) interrupt, which is used to generate the uC/OS-III tick
-*              interrupt.
-*
-* Arguments  : None.
-*
-* Note(s)    : This function is defined with weak linking in 'riscv_hal_stubs.c' so that it can be
-*              overridden by the kernel port with same prototype
-*********************************************************************************************************
-*/
-
-void  SysTick_Handler (void)
-{
-    CPU_SR_ALLOC();                            /* Allocate storage for CPU status register             */
-
-
-    CPU_CRITICAL_ENTER();
-    OSIntEnter();                              /* Tell uC/OS-III that we are starting an ISR           */
-    CPU_CRITICAL_EXIT();
-
-    OSTimeTick();                              /* Call uC/OS-III's OSTimeTick()                        */
-
-    OSIntExit();                               /* Tell uC/OS-III that we are leaving the ISR           */
-}
-
 
 /*
 *********************************************************************************************************

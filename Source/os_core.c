@@ -272,6 +272,18 @@ void  OSIntEnter (void)
         return;                                                 /* Yes                                                  */
     }
 
+#if OS_CFG_TASK_PROFILE_EN > 0u
+    if(OSIntNestingCtr==0) {
+        CPU_TS  ts;
+
+        ts = OS_TS_GET();
+        if(ts > OSTCBCurPtr->CyclesStart) {
+            OSTCBCurPtr->CyclesDelta  = ts - OSTCBCurPtr->CyclesStart;
+            OSTCBCurPtr->CyclesTotal += (OS_CYCLES)OSTCBCurPtr->CyclesDelta;
+        }
+    }
+#endif
+
     OSIntNestingCtr++;                                          /* Increment ISR nesting level                          */
 }
 
@@ -339,6 +351,10 @@ void  OSIntExit (void)
 #endif
 #endif
 
+#if OS_CFG_TASK_PROFILE_EN > 0u
+    OSTCBCurPtr->CyclesStart = OS_TS_GET();
+#endif
+
     OSPrioHighRdy   = OS_PrioGetHighest();                      /* Find highest priority                                */
 #if (OS_CFG_TASK_IDLE_EN > 0u)
     OSTCBHighRdyPtr = OSRdyList[OSPrioHighRdy].HeadPtr;         /* Get highest priority task ready-to-run               */
@@ -384,6 +400,35 @@ void  OSIntExit (void)
     OSIntCtxSw();                                               /* Perform interrupt level ctx switch                   */
 
     CPU_INT_EN();
+}
+
+
+/*
+************************************************************************************************************************
+*                                                     ISR CHECK
+*
+* Description: This function is called to check if the current context is in an ISR or not.
+*
+* Arguments  : none
+*
+* Returns    : If current context is in iSR (OS_TRUE) or not (OS_FALSE).
+*
+* Note(s)    : none
+************************************************************************************************************************
+*/
+
+CPU_BOOLEAN  OSIntIsInIsr (void)
+{
+    CPU_BOOLEAN in_isr;
+
+    if (OSIntNestingCtr > 0u) {
+       in_isr = OS_TRUE;
+    }
+    else {
+       in_isr = OS_FALSE;
+    }
+
+    return (in_isr);
 }
 
 
